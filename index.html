@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Plan Fit">
+    <meta name="theme-color" content="#1e293b">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💪</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💪</text></svg>">
+
+    <title>Plan de Definición y Fuerza</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #e2e8f0;
+            /* Evita el rebote elástico en iPhone */
+            overscroll-behavior-y: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .card-gradient {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+        }
+
+        .active-day {
+            border: 2px solid #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            position: relative;
+            z-index: 10;
+        }
+
+        .holiday-pattern {
+            background-color: #1e293b;
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                #334155 10px,
+                #334155 20px
+            );
+        }
+
+        /* Checkbox Styles */
+        .custom-checkbox input:checked + div {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+        .custom-checkbox input:checked + div svg {
+            display: block;
+        }
+        
+        /* Completed Row Style */
+        .exercise-completed {
+            opacity: 0.5;
+            background-color: #1e293b !important;
+        }
+        .exercise-completed .exercise-name {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        
+        /* Ajuste para iPhone con Notch/Isla Dinámica */
+        header {
+            padding-top: env(safe-area-inset-top);
+        }
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col safe-bottom">
+
+    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-40 shadow-lg">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-white tracking-tight">Plan Definición & Fuerza</h1>
+                <p class="text-xs text-slate-400">23 Dic - 09 Ene | Objetivo: Grasa ▼ Músculo ▲</p>
+            </div>
+            <div class="text-right">
+                <div class="text-sm font-semibold text-blue-400" id="currentDateDisplay"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl mx-auto w-full px-4 py-6 space-y-6">
+
+        <div class="bg-slate-800/50 rounded-xl border border-slate-700 p-4">
+            <h2 class="text-sm font-bold text-white mb-3 flex items-center uppercase tracking-wider">
+                <i class="fas fa-ruler-combined mr-2 text-green-400"></i> Progreso Corporal
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-blue-400">INICIO: 23 DIC</span>
+                        <i class="fas fa-calendar-check text-slate-600 text-xs"></i>
+                    </div>
+                    <div class="flex space-x-3">
+                        <div class="w-1/2">
+                            <label class="block text-[10px] text-slate-500 mb-1">PESO (KG)</label>
+                            <input type="number" id="weightStart" placeholder="0.0" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500" onchange="saveStats()">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-[10px] text-slate-500 mb-1">ESTATURA (CM)</label>
+                            <input type="number" id="heightStart" placeholder="0" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-blue-500" onchange="saveStats()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 relative">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-green-400">FINAL: 09 ENE</span>
+                        <i class="fas fa-flag-checkered text-slate-600 text-xs"></i>
+                    </div>
+                    <div class="flex space-x-3">
+                        <div class="w-1/2">
+                            <label class="block text-[10px] text-slate-500 mb-1">PESO (KG)</label>
+                            <input type="number" id="weightEnd" placeholder="0.0" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-green-500" onchange="saveStats()">
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-[10px] text-slate-500 mb-1">ESTATURA (CM)</label>
+                            <input type="number" id="heightEnd" placeholder="0" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-green-500" onchange="saveStats()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                <i class="fas fa-dumbbell text-blue-500 mb-1"></i>
+                <p class="text-xs text-slate-400">Lun-Mié</p>
+                <p class="text-sm font-bold">Pesado</p>
+            </div>
+            <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                <i class="fas fa-fire text-orange-500 mb-1"></i>
+                <p class="text-xs text-slate-400">Jue-Vie</p>
+                <p class="text-sm font-bold">Metabólico</p>
+            </div>
+            <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                <i class="fas fa-stopwatch text-yellow-500 mb-1"></i>
+                <p class="text-xs text-slate-400">Descanso</p>
+                <p class="text-sm font-bold">Ver Detalles</p>
+            </div>
+            <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 text-center">
+                <i class="fas fa-utensils text-green-500 mb-1"></i>
+                <p class="text-xs text-slate-400">Nutrición</p>
+                <p class="text-sm font-bold">Alta Proteína</p>
+            </div>
+        </div>
+
+        <div>
+            <h2 class="text-lg font-semibold text-white mb-3 flex items-center">
+                <i class="far fa-calendar-alt mr-2 text-blue-400"></i> Calendario
+            </h2>
+            <div id="calendarGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pb-10">
+                </div>
+        </div>
+
+    </main>
+
+    <div id="workoutModal" class="fixed inset-0 bg-black/80 z-[100] hidden items-end sm:items-center justify-center backdrop-blur-sm">
+        <div class="bg-slate-900 w-full max-w-lg h-[85vh] sm:h-auto sm:max-h-[80vh] sm:rounded-2xl rounded-t-2xl flex flex-col shadow-2xl border border-slate-700 transform transition-transform duration-300 translate-y-full sm:translate-y-0" id="modalContent">
+            
+            <div class="p-5 border-b border-slate-700 flex justify-between items-start bg-slate-800 sm:rounded-t-2xl sticky top-0 z-10">
+                <div>
+                    <span id="modalDate" class="text-xs font-mono text-blue-400 mb-1 block">FECHA</span>
+                    <h2 id="modalTitle" class="text-2xl font-bold text-white leading-tight">Título Rutina</h2>
+                    <p id="modalSubtitle" class="text-sm text-slate-400 mt-1">Subtítulo</p>
+                </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white p-2">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto p-5 space-y-6 custom-scrollbar flex-grow">
+                
+                <div>
+                    <div class="flex justify-between items-end mb-3 border-b border-slate-700 pb-1">
+                         <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Ejercicios</h3>
+                         <span class="text-[10px] text-slate-500">Toca el círculo para completar</span>
+                    </div>
+                    
+                    <ul id="modalExercises" class="space-y-3">
+                        </ul>
+                </div>
+
+                <div id="modalAbsSection" class="hidden">
+                    <h3 class="text-sm font-bold text-yellow-500 uppercase tracking-wider mb-3 border-b border-yellow-500/30 pb-1">
+                        <i class="fas fa-cube mr-1"></i> Abdomen
+                    </h3>
+                    <div class="bg-yellow-500/10 rounded-lg p-4 border border-yellow-500/20">
+                        <ul class="space-y-3 text-sm text-slate-300" id="modalAbsList">
+                            </ul>
+                    </div>
+                </div>
+
+                <div class="bg-blue-600/10 rounded-lg p-4 border border-blue-600/20 mb-10">
+                    <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider mb-2">
+                        <i class="fas fa-running mr-1"></i> Cardio Final
+                    </h3>
+                    <p id="modalCardio" class="text-sm text-slate-300">Instrucciones de cardio...</p>
+                </div>
+
+            </div>
+
+            <div class="p-4 border-t border-slate-700 bg-slate-800 sm:rounded-b-2xl safe-bottom">
+                <button onclick="closeModal()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+
+        const routines = {
+            push_heavy: {
+                title: "Empuje Pesado",
+                subtitle: "Pecho, Hombro, Tríceps",
+                color: "red",
+                exercises: [
+                    { name: "Press de Banca Plano", sets: "4", reps: "8-10", rest: "90s" },
+                    { name: "Press Inclinado (Mancuernas)", sets: "3", reps: "8-10", rest: "90s" },
+                    { name: "Aperturas / Cruces en polea", sets: "3", reps: "10-12", rest: "60s" },
+                    { name: "Press Militar", sets: "4", reps: "8-10", rest: "90s" },
+                    { name: "Elevaciones Laterales", sets: "3", reps: "12", rest: "60s" },
+                    { name: "Press Francés o Fondos", sets: "3", reps: "10", rest: "60s" },
+                    { name: "Extensiones tríceps polea", sets: "3", reps: "Al fallo", rest: "60s" }
+                ],
+                cardio: "15 min caminata inclinada paso rápido.",
+                hasAbs: true
+            },
+            pull_heavy: {
+                title: "Tracción Pesada",
+                subtitle: "Espalda, Bíceps, Antebrazo",
+                color: "blue",
+                exercises: [
+                    { name: "Dominadas o Jalón al pecho", sets: "4", reps: "8-10", rest: "90s" },
+                    { name: "Remo barra o Remo Gironda", sets: "3", reps: "8-10", rest: "90s" },
+                    { name: "Remo unilateral (Serrucho)", sets: "3", reps: "10", rest: "60s" },
+                    { name: "Curl Barra Z", sets: "3", reps: "8-10", rest: "60s" },
+                    { name: "Curl Martillo", sets: "3", reps: "10", rest: "60s" },
+                    { name: "Curl Predicador", sets: "3", reps: "10-12", rest: "60s" },
+                    { name: "Curl de muñeca", sets: "2", reps: "15", rest: "45s" }
+                ],
+                cardio: "15 min elíptica o bici (ritmo medio).",
+                hasAbs: false
+            },
+            legs_heavy: {
+                title: "Pierna Completa",
+                subtitle: "Enfoque Quema de Calorías",
+                color: "green",
+                exercises: [
+                    { name: "Sentadilla Libre", sets: "4", reps: "8-10", rest: "90s" },
+                    { name: "Prensa de Piernas", sets: "4", reps: "10-12", rest: "90s" },
+                    { name: "Peso Muerto Rumano", sets: "4", reps: "10", rest: "90s" },
+                    { name: "Extensiones Cuádriceps", sets: "3", reps: "15", rest: "60s" },
+                    { name: "Curl Femoral", sets: "3", reps: "15", rest: "60s" },
+                    { name: "Zancadas", sets: "3", reps: "12/pierna", rest: "60s" },
+                    { name: "Pantorrilla", sets: "4", reps: "15-20", rest: "45s" }
+                ],
+                cardio: "No especificado (La rutina es de alta demanda).",
+                hasAbs: true
+            },
+            push_meta: {
+                title: "Empuje Metabólico",
+                subtitle: "Superseries (Alta Intensidad)",
+                color: "orange",
+                isSuperset: true,
+                exercises: [
+                    { name: "SS A: Press Banca Manc. (12-15) + Elev. Lat. (15)", sets: "4 vueltas", reps: "-", rest: "45s" },
+                    { name: "SS B: Flexiones (Fallo) + Ext. Tríceps (15)", sets: "3 vueltas", reps: "-", rest: "45s" },
+                    { name: "SS C: Press Hombros Máq. (12-15) + Fondos (Fallo)", sets: "3 vueltas", reps: "-", rest: "45s" }
+                ],
+                cardio: "20-25 mins (Cinta correr o caminar muy inclinado).",
+                hasAbs: false
+            },
+            pull_meta: {
+                title: "Tracción Metabólico",
+                subtitle: "Superseries (Alta Intensidad)",
+                color: "purple",
+                isSuperset: true,
+                exercises: [
+                    { name: "SS A: Jalón pecho (12-15) + Curl barra pie (12-15)", sets: "4 vueltas", reps: "-", rest: "45s" },
+                    { name: "SS B: Remo máquina (12-15) + Curl concentrado (15)", sets: "3 vueltas", reps: "-", rest: "45s" },
+                    { name: "SS C: Facepulls (15-20) + Curl muñeca (20)", sets: "3 vueltas", reps: "-", rest: "45s" }
+                ],
+                cardio: "20-25 mins (Cardio moderado/intenso).",
+                hasAbs: true
+            },
+            rest: {
+                title: "Descanso / Recuperación",
+                subtitle: "Sábado y Domingo",
+                color: "slate",
+                exercises: [],
+                cardio: "Descanso total o caminata ligera. Mantener proteína alta.",
+                hasAbs: false
+            },
+            holiday: {
+                title: "⛔ Gimnasio Cerrado",
+                subtitle: "Feriado",
+                color: "red-holiday",
+                exercises: [],
+                cardio: "Disfruta el día. Si deseas, realiza cardio ligero al aire libre.",
+                hasAbs: false
+            }
+        };
+
+        const absRoutine = [
+            { name: "Elevación de piernas", sets: "4", reps: "12-15", rest: "45s" },
+            { name: "Crunches polea/clásicos", sets: "4", reps: "15-20", rest: "45s" },
+            { name: "Plancha (Plank)", sets: "4", reps: "45-60s", rest: "45s" }
+        ];
+
+        // Date Setup
+        const startDate = new Date(2025, 11, 23); // Dec 23, 2025
+        const endDate = new Date(2026, 0, 9);     // Jan 9, 2026
+        const holidays = ["2025-12-25", "2026-01-01"];
+
+        const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+        const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+        function getFormattedDate(date) {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        }
+
+        function getRoutineKey(dayOfWeek, dateStr) {
+            if (holidays.includes(dateStr)) return 'holiday';
+            switch(dayOfWeek) {
+                case 1: return 'push_heavy';
+                case 2: return 'pull_heavy';
+                case 3: return 'legs_heavy';
+                case 4: return 'push_meta';
+                case 5: return 'pull_meta';
+                default: return 'rest';
+            }
+        }
+
+        // --- LOCAL STORAGE & COMPLETION LOGIC ---
+
+        function getProgressKey(dateStr, exerciseName) {
+            return `gym_progress_${dateStr}_${exerciseName.replace(/\s+/g, '')}`;
+        }
+
+        function toggleExercise(dateStr, exerciseName, element) {
+            const key = getProgressKey(dateStr, exerciseName);
+            const isChecked = element.checked;
+            
+            if (isChecked) {
+                localStorage.setItem(key, 'true');
+                element.closest('li').classList.add('exercise-completed');
+            } else {
+                localStorage.removeItem(key);
+                element.closest('li').classList.remove('exercise-completed');
+            }
+        }
+
+        // --- STATS LOGIC ---
+        
+        function loadStats() {
+            document.getElementById('weightStart').value = localStorage.getItem('gym_stat_weight_start') || '';
+            document.getElementById('heightStart').value = localStorage.getItem('gym_stat_height_start') || '';
+            document.getElementById('weightEnd').value = localStorage.getItem('gym_stat_weight_end') || '';
+            document.getElementById('heightEnd').value = localStorage.getItem('gym_stat_height_end') || '';
+        }
+
+        function saveStats() {
+            localStorage.setItem('gym_stat_weight_start', document.getElementById('weightStart').value);
+            localStorage.setItem('gym_stat_height_start', document.getElementById('heightStart').value);
+            localStorage.setItem('gym_stat_weight_end', document.getElementById('weightEnd').value);
+            localStorage.setItem('gym_stat_height_end', document.getElementById('heightEnd').value);
+        }
+
+        // --- CALENDAR LOGIC ---
+
+        function renderCalendar() {
+            const container = document.getElementById('calendarGrid');
+            
+            // AUTOMATIC DATE DETECTION
+            const todayObj = new Date();
+            const todayStr = getFormattedDate(todayObj);
+            
+            // Update Header Display
+            document.getElementById('currentDateDisplay').innerText = `Hoy: ${todayObj.getDate()} de ${monthNames[todayObj.getMonth()]}`;
+
+            let currentDate = new Date(startDate);
+            
+            while (currentDate <= endDate) {
+                const dateStr = getFormattedDate(currentDate);
+                const dayOfWeek = currentDate.getDay();
+                const routineKey = getRoutineKey(dayOfWeek, dateStr);
+                const routine = routines[routineKey];
+                
+                const isToday = dateStr === todayStr;
+                const isHoliday = routineKey === 'holiday';
+                const isRest = routineKey === 'rest';
+
+                let borderColor = "border-slate-700";
+                let badgeColor = "bg-slate-700 text-slate-300";
+                let icon = "fa-dumbbell";
+                
+                if (routineKey === 'push_heavy') { borderColor = "border-red-900"; badgeColor = "bg-red-900/50 text-red-200"; icon="fa-hand-rock"; }
+                if (routineKey === 'pull_heavy') { borderColor = "border-blue-900"; badgeColor = "bg-blue-900/50 text-blue-200"; icon="fa-hand-holding"; }
+                if (routineKey === 'legs_heavy') { borderColor = "border-green-900"; badgeColor = "bg-green-900/50 text-green-200"; icon="fa-walking"; }
+                if (routineKey === 'push_meta') { borderColor = "border-orange-900"; badgeColor = "bg-orange-900/50 text-orange-200"; icon="fa-fire"; }
+                if (routineKey === 'pull_meta') { borderColor = "border-purple-900"; badgeColor = "bg-purple-900/50 text-purple-200"; icon="fa-bolt"; }
+                if (isHoliday) { borderColor = "border-red-500/50"; badgeColor = "bg-red-600 text-white"; icon="fa-door-closed"; }
+                if (isRest) { icon="fa-bed"; }
+
+                const card = document.createElement('div');
+                card.className = `relative p-4 rounded-xl border ${borderColor} ${isHoliday ? 'holiday-pattern' : 'card-gradient'} cursor-pointer hover:brightness-110 transition-all group`;
+                
+                if (isToday) {
+                    card.classList.add('active-day');
+                    // Auto-scroll to today if needed could go here
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase">${dayNames[dayOfWeek]}</span>
+                            <div class="text-lg font-bold text-white">${currentDate.getDate()} ${monthNames[currentDate.getMonth()]}</div>
+                        </div>
+                        ${isToday ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500 text-white animate-pulse">HOY</span>' : ''}
+                    </div>
+                    
+                    <div class="mt-2">
+                        <div class="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold ${badgeColor} mb-1">
+                            <i class="fas ${icon} mr-1.5"></i> ${isRest ? 'Descanso' : (isHoliday ? 'CERRADO' : routine.title.split(' ')[0])}
+                        </div>
+                        <p class="text-sm text-slate-300 font-medium leading-tight mt-1 group-hover:text-white transition-colors">
+                            ${routine.title}
+                        </p>
+                        ${routine.hasAbs ? '<div class="mt-2 flex items-center text-[10px] text-yellow-500"><i class="fas fa-cube mr-1"></i> + Abdomen</div>' : ''}
+                    </div>
+                `;
+
+                // Fix closure issue with let/const
+                const r = routine;
+                const d = dateStr;
+                const n = dayNames[dayOfWeek];
+                card.onclick = () => openModal(r, d, n);
+                
+                container.appendChild(card);
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        }
+
+        // --- MODAL LOGIC ---
+
+        const modal = document.getElementById('workoutModal');
+        const modalContent = document.getElementById('modalContent');
+
+        function generateExerciseRow(ex, dateStr) {
+            const isChecked = localStorage.getItem(getProgressKey(dateStr, ex.name)) === 'true';
+            
+            return `
+                <li class="flex items-center bg-slate-800/50 p-3 rounded-lg border border-slate-700/50 transition-all ${isChecked ? 'exercise-completed' : ''}">
+                    <label class="custom-checkbox flex items-center cursor-pointer mr-3">
+                        <input type="checkbox" class="hidden" ${isChecked ? 'checked' : ''} onchange="toggleExercise('${dateStr}', '${ex.name}', this)">
+                        <div class="w-6 h-6 border-2 border-slate-500 rounded-full flex items-center justify-center transition-colors hover:border-blue-400">
+                            <svg class="w-3 h-3 text-white hidden fill-current" viewBox="0 0 20 20"><path d="M0 11l2-2 5 5L18 3l2 2L7 18z"/></svg>
+                        </div>
+                    </label>
+
+                    <div class="flex-grow pr-2">
+                        <span class="block text-sm font-semibold text-slate-200 exercise-name">${ex.name}</span>
+                        <div class="flex items-center mt-1 text-xs text-slate-400">
+                             <i class="fas fa-stopwatch mr-1 text-yellow-500"></i> Descanso: ${ex.rest}
+                        </div>
+                    </div>
+                    
+                    <div class="text-right shrink-0 ml-2">
+                        <span class="block text-[10px] text-slate-500 uppercase">Series</span>
+                        <span class="font-mono text-sm font-bold text-blue-400">${ex.sets}</span>
+                    </div>
+                    <div class="text-right shrink-0 ml-3 w-10">
+                        <span class="block text-[10px] text-slate-500 uppercase">Reps</span>
+                        <span class="font-mono text-sm font-bold text-white">${ex.reps}</span>
+                    </div>
+                </li>
+            `;
+        }
+
+        function openModal(routine, dateStr, dayName) {
+            document.getElementById('modalDate').innerText = `${dayName.toUpperCase()}, ${dateStr.split('-')[2]} DE ${monthNames[parseInt(dateStr.split('-')[1])-1].toUpperCase()}`;
+            document.getElementById('modalTitle').innerText = routine.title;
+            document.getElementById('modalSubtitle').innerText = routine.subtitle;
+            document.getElementById('modalCardio').innerText = routine.cardio;
+
+            // Main Exercises
+            const list = document.getElementById('modalExercises');
+            list.innerHTML = '';
+            if (routine.exercises.length === 0) {
+                list.innerHTML = `<li class="text-slate-500 italic text-center py-4">Día libre de pesas. ¡Recupérate!</li>`;
+            } else {
+                routine.exercises.forEach(ex => {
+                    list.innerHTML += generateExerciseRow(ex, dateStr);
+                });
+            }
+
+            // Abs Section
+            const absSection = document.getElementById('modalAbsSection');
+            const absList = document.getElementById('modalAbsList');
+            absList.innerHTML = ''; // Clear previous
+
+            if (routine.hasAbs) {
+                absSection.classList.remove('hidden');
+                absRoutine.forEach(ex => {
+                    absList.innerHTML += generateExerciseRow(ex, dateStr);
+                });
+            } else {
+                absSection.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            // Bloquear scroll del body
+            document.body.style.overflow = 'hidden';
+
+            requestAnimationFrame(() => {
+                modalContent.classList.remove('translate-y-full');
+            });
+        }
+
+        function closeModal() {
+            modalContent.classList.add('translate-y-full');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                // Reactivar scroll del body
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        
+        // Init
+        loadStats();
+        renderCalendar();
+
+    </script>
+</body>
+</html>
